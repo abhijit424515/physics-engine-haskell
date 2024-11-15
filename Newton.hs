@@ -53,3 +53,64 @@ fAir :: R        -- drag coefficient
      -> Force
 fAir drag rho area v = - (drag * rho * area * abs v * v / 2)
 
+newtonSecondV :: Mass                -- m
+              -> [Velocity -> Force] -- fs (list of forces(v)) 
+              -> Velocity            -- v0 (current velocity)
+              -> R                   -- v' (derivative of velocity)
+newtonSecondV m fs v0 = sum [f v0 | f <- fs] / m
+
+updateVelocity :: R                    -- dt
+               -> Mass                 -- m
+               -> [Velocity -> Force]  -- fs (list of forces(v))
+               -> Velocity             -- v0 (current velocity)
+               -> Velocity             -- v1 (new velocity)
+updateVelocity dt m fs v0 = v0 + dt * newtonSecondV m fs v0
+
+velocityFv :: R                    -- dt
+           -> Mass                 -- m
+           -> Velocity             -- v0 (initial velocity)
+           -> [Velocity -> Force]  -- fs (list of forces(v))
+           -> (Time -> Velocity)   -- v(t)
+velocityFv dt m v0 fs t = 
+    let steps = abs $ round (t/dt)
+    in iterate (updateVelocity dt m fs) v0 !! steps
+
+-- \frac{d (t,v(t))}{dt} = (1,\frac{\sum_j {F_j(t,v(t))}}{m})
+newtonSecondTV :: Mass                        -- m
+               -> [(Time,Velocity) -> Force]  -- fs (list of forces(t,v))
+               -> (Time,Velocity)             -- (t,v0) current state
+               -> (R,R)                       -- (1,acceleration)
+newtonSecondTV m fs (t,v0) =
+    let fnet = sum [f (t,v0) | f <- fs]
+        a = fnet/m
+    in (1,a)
+
+-- v(t+\delta{t}) = v(t) + \delta{t} \frac{F_{net}(t,v(t))}{m}
+
+updateTV :: R                            -- dt
+         -> Mass                         -- m
+         -> [(Time,Velocity) -> Force]   -- fs (list of forces(t,v))
+         -> (Time,Velocity)              -- current state
+         -> (Time,Velocity)              -- new state
+updateTV dt m fs (t,v0) =
+    let (dt_dt, dv_dt) = newtonSecondTV m fs (t,v0)
+    in (t + dt*dt_dt, v0 + dt*dv_dt)
+
+-- 
+
+statesTV :: R                            -- dt
+         -> Mass                         -- m
+         -> (Time,Velocity)              -- tv0 (initial state)
+         -> [(Time,Velocity) -> Force]   -- fs (list of forces(t,v))
+         -> [(Time,Velocity)]            -- inf list of states
+statesTV dt m tv0 fs =
+    iterate (updateTV dt m fs) tv0
+
+velocityFtv :: R                            -- dt
+            -> Mass                         -- m
+            -> (Time,Velocity)              -- tv0 (initial state)
+            -> [(Time,Velocity) -> Force]   -- fs (list of forces(t,v))
+            -> (Time -> Velocity)           -- f(v)
+velocityFtv dt m tv0 fs t =
+    let steps = abs $ round (t/dt)
+    in snd $ statesTV dt m tv0 fs !! steps 

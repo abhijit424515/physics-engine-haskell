@@ -13,9 +13,9 @@ ff t =
 
 t2 :: IO ()
 t2 =
-    plotFunc  [Title "Child pedaling then coasting"
-                ,XLabel "Time (s)"
-                ,YLabel "Position of Bike (m)"
-                -- ,PNG "ChildPosition.png"
-                ,Key Nothing
-                ] [0..40 :: R] (positionFt 0.1 20 0 0 [ff])
+    plotFunc [Title "Child pedaling then coasting"
+             ,XLabel "Time (s)"
+             ,YLabel "Position of Bike (m)"
+             -- ,PNG "ChildPosition.png"
+             ,Key Nothing
+             ] [0..40 :: R] (positionFt 0.1 20 0 0 [ff])

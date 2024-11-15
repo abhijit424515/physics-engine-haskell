@@ -10,9 +10,9 @@ velocityCF m v0 fs =
 
 t1 :: IO ()
 t1 =
-    plotFunc    [Title "Car"
-                ,XLabel "Time (s)"
-                ,YLabel "Velocity (m/s)"
-                -- ,PNG "CarVelocity.png"
-                ,Key Nothing
-                ] [0..4 :: Time] (velocityCF 0.1 0.6 [0.04,-0.08])
+    plotFunc [Title "Car"
+             ,XLabel "Time (s)"
+             ,YLabel "Velocity (m/s)"
+             -- ,PNG "CarVelocity.png"
+             ,Key Nothing
+             ] [0..4 :: Time] (velocityCF 0.1 0.6 [0.04,-0.08])
